@@ -11,7 +11,7 @@ digitToWord 4 = "four"
 digitToWord 5 = "five"
 digitToWord 6 = "six"
 digitToWord 7 = "seven"
-digitToWord 8 = "eight"
+digitToWord 8 = "eigh t"
 digitToWord 9 = "nine"
 
 digits :: Int -> [Int]
