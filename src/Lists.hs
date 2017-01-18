@@ -1,5 +1,11 @@
 module Lists where
 
+{-
+Write your own enumFromTo definitions for the types provided. Do not
+use range syntax to do so. It should return the same results as if you
+did [start..stop]
+-}
+
 eftBool :: Bool -> Bool -> [Bool]
 eftBool = eftEnum
 
