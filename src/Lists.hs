@@ -15,12 +15,12 @@ eftOrd = eftEnum
 eftInt :: Int -> Int -> [Int]
 eftInt = eftEnum
 
-eftChar :: Char -> Char -> [Char]
+eftChar :: Char -> Char -> String
 eftChar = eftEnum
 
 eftEnum :: (Enum a, Ord a) => a -> a -> [a]
 eftEnum from to
-  | from < to = from : (eftEnum (succ from) to)
+  | from < to = from : eftEnum (succ from) to
   | from == to = [from]
   | otherwise = []
 
@@ -34,11 +34,11 @@ of the string into words, as in the following sample:
 
 breakWords :: Char -> String -> [String]
 breakWords _ "" = []
-breakWords c s  = head : breakWords c tail
+breakWords c s  = h : breakWords c t
   where
-    isSeparator = (== c)
-    head = takeWhile (not . isSeparator) s
-    tail = drop 1 (dropWhile (not . isSeparator) s)
+    notSeparator = (/= c)
+    h = takeWhile notSeparator s
+    t = drop 1 (dropWhile notSeparator s)
 
 myWords :: String -> [String]
 myWords = breakWords ' '
