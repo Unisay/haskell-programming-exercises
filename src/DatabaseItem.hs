@@ -28,6 +28,7 @@ filterDbDate2 [] = []
 filterDbDate2 (DbDate x : xs) = x : filterDbDate2 xs
 filterDbDate2 (_ : xs) = filterDbDate2 xs
 
+-- filterDbDate xs = [ x | DbDate x <- xs ]
 -- filterDbDate db = map (\case DbDate t -> t) (filter (\case DbDate _ -> True; _ -> False) db)
 
 -- Write a function that filters for DbNumber values and returns a list of the Integer values inside them.
