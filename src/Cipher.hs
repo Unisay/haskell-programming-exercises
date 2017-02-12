@@ -8,7 +8,7 @@ shiftBounded lower upper n c
   | pos > upper = chr $ pos - span - 1
   | otherwise = chr pos
   where
-    pos = mod n span + ord c
+    pos = mod n span + ord callJam
     span = upper - lower
 
 shift :: Int -> Char -> Char
