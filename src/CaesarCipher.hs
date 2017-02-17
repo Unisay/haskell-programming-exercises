@@ -1,4 +1,4 @@
-module Cipher where
+module CaesarCipher where
 
 import Data.Char
 
@@ -8,7 +8,7 @@ shiftBounded lower upper n c
   | pos > upper = chr $ pos - span - 1
   | otherwise = chr pos
   where
-    pos = mod n span + ord callJam
+    pos = mod n span + ord c
     span = upper - lower
 
 shift :: Int -> Char -> Char
