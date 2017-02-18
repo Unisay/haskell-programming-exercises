@@ -16,13 +16,13 @@ isSubsequenceOf (x:xs) haystack = elem x haystack && isSubsequenceOf xs haystack
 capitalizeWords :: String -> [(String, String)]
 capitalizeWords s = map f (words s)
   where
-    f w@[] = ([], [])
-    f w@(x : xs) = (w, (toUpper x) : xs)
+    f [] = ([], [])
+    f w@(x : xs) = (w, toUpper x : xs)
 
 -- Write a function that capitalizes a word.
 capitalizeWord :: String -> String
 capitalizeWord [] = []
-capitalizeWord (x : xs) = (toUpper x) : xs
+capitalizeWord (x : xs) = toUpper x : xs
 
 -- Write a function that capitalizes sentences in a paragraph.
 -- Recognize when a new sentence has begun by checking for periods.
@@ -33,7 +33,7 @@ capitalizeParagraph p = rec p True
     rec (d@'.': xs) _ = d : rec xs True
     rec (w@' ': xs) b = w : rec xs b
     rec (x : xs) False = x : rec xs False
-    rec (x : xs) True = (toUpper x) : rec xs False
+    rec (x : xs) True = toUpper x : rec xs False
 
 
 -- Reuse the capitalizeWord function.
@@ -41,5 +41,5 @@ capitalizeParagraph' :: String -> String
 capitalizeParagraph' p = rec $ capitalizeWord p
   where
     rec [] = []
-    rec ('.' : ' ' : xs) = ". " ++ (rec (capitalizeWord xs))
+    rec ('.' : ' ' : xs) = ". " ++ rec (capitalizeWord xs)
     rec (x : xs) = x : rec xs
