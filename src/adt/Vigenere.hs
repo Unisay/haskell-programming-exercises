@@ -23,8 +23,11 @@ shiftR c n
 shiftL :: Char -> Int -> Char
 shiftL c i = shiftR c (1 - i)
 
+shiftWith :: (Char -> Int -> Char) -> String -> String -> String
+shiftWith f pass s = zipWith f s (enumerate password)
+
 encode :: String -> String -> String
-encode password s = zipWith shiftR s (enumerate password)
+encode = shiftWith shiftR
 
 decode :: String -> String -> String
-decode password s = zipWith shiftL s (enumerate password)
+decode = shiftWith shiftL
