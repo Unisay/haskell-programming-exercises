@@ -22,7 +22,7 @@ capitalizeWords s = map f (words s)
 -- Write a function that capitalizes a word.
 capitalizeWord :: String -> String
 capitalizeWord [] = []
-capitalizeWord (x : xs) = toUpper x : xs
+capitalizeWord (x : xs) = toUpper x : map toLower xs
 
 -- Write a function that capitalizes sentences in a paragraph.
 -- Recognize when a new sentence has begun by checking for periods.
