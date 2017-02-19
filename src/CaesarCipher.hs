@@ -20,8 +20,8 @@ unShift :: Int -> Char -> Char
 unShift n = shift (1 - n)
 
 caesar :: Int -> String -> String
-caesar n s = map (shift n) s
+caesar n = map (shift n)
 
 unCaesar :: Int -> String -> String
-unCaesar n s = map (unShift n) s
+unCaesar n = map (unShift n)
 

@@ -24,4 +24,4 @@ digits n = recur n [] where
         last = mod num 10
 
 wordNumber :: Int -> String
-wordNumber n = concat $ intersperse "-" (map digitToWord (digits n))
+wordNumber n = intercalate "-" (map digitToWord (digits n))
