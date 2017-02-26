@@ -1,5 +1,6 @@
-.idea
-.stack-work
-out
-dist
+.idea/
+.stack-work/
+out/
+dist/
 *.iml
+target/
