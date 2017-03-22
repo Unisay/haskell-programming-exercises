@@ -1,8 +1,8 @@
 module RecursionSpec (recursionSpec) where
 
 import           Test.Hspec
-import           Recursion
 import           Test.QuickCheck
+import           Recursion
 
 prop_additionGreater :: Int -> Bool
 prop_additionGreater x = x + 1 > x
