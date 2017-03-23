@@ -12,7 +12,7 @@ executable learn-haskell
 
 library
   hs-source-dirs:    src
-  exposed-modules:   Recursion, WordNumber
+  exposed-modules:   Recursion, WordNumber, Monoid
   build-depends:     base == 4.*
   default-language:  Haskell2010
   ghc-options:       -Wall
@@ -24,6 +24,7 @@ Test-Suite tests
   default-language:  Haskell2010
   other-modules:     RecursionSpec
                    , WordNumberSpec
+                   , MonoidSpec
   build-depends:     base == 4.*
                    , hspec
                    , QuickCheck
