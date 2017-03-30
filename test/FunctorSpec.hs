@@ -91,6 +91,7 @@ instance (Arbitrary a, Arbitrary b) => Arbitrary (Four' a b) where
       b <- arbitrary
       return $ Four' a a a b
 
+
 functorSpec :: SpecWith ()
 functorSpec = do
 
