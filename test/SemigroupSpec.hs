@@ -1,6 +1,6 @@
  {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module SemigroupSpec where
+module SemigroupSpec (semigroupSpec) where
 
 import Semigroup
 import Data.Semigroup
@@ -50,22 +50,21 @@ type Th = Three Trivial I T
 type F = Four Trivial I T Th
 type O = Or I T
 
-main :: IO ()
-main = hspec $
-  describe "Is associative" $ do
-    it "Semigroup Trivial" $
-      property (semigroupAssoc :: Trivial -> Trivial -> Trivial -> Bool)
-    it "Semigroup (Identity Trivial)" $
-      property (semigroupAssoc :: I -> I -> I -> Bool)
-    it "Semigroup (Two a b)" $
-      property (semigroupAssoc :: T -> T -> T -> Bool)
-    it "Semigroup (Three a b c)" $
-      property (semigroupAssoc :: Th -> Th -> Th -> Bool)
-    it "Semigroup (Four a b c d)" $
-      property (semigroupAssoc :: F -> F -> F -> Bool)
-    it "Semigroup BoolConj" $
-      property (semigroupAssoc :: BoolConj -> BoolConj -> BoolConj -> Bool)
-    it "Semigroup BoolDisj" $
-      property (semigroupAssoc :: BoolDisj -> BoolDisj -> BoolDisj -> Bool)
-    it "Semigroup (Or a b)" $
-      property (semigroupAssoc :: O -> O -> O -> Bool)
+semigroupSpec :: SpecWith ()
+semigroupSpec = describe "Semigroup laws" $ do
+  it "Semigroup Trivial" $
+    property (semigroupAssoc :: Trivial -> Trivial -> Trivial -> Bool)
+  it "Semigroup (Identity Trivial)" $
+    property (semigroupAssoc :: I -> I -> I -> Bool)
+  it "Semigroup (Two a b)" $
+    property (semigroupAssoc :: T -> T -> T -> Bool)
+  it "Semigroup (Three a b c)" $
+    property (semigroupAssoc :: Th -> Th -> Th -> Bool)
+  it "Semigroup (Four a b c d)" $
+    property (semigroupAssoc :: F -> F -> F -> Bool)
+  it "Semigroup BoolConj" $
+    property (semigroupAssoc :: BoolConj -> BoolConj -> BoolConj -> Bool)
+  it "Semigroup BoolDisj" $
+    property (semigroupAssoc :: BoolDisj -> BoolDisj -> BoolDisj -> Bool)
+  it "Semigroup (Or a b)" $
+    property (semigroupAssoc :: O -> O -> O -> Bool)

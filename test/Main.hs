@@ -4,7 +4,9 @@ import           Test.Hspec
 import           Test.QuickCheck
 import           RecursionSpec   (recursionSpec)
 import           WordNumberSpec  (wordNumberSpec)
+import           SemigroupSpec   (semigroupSpec)
 import           MonoidSpec      (monoidSpec)
+import           FunctorSpec     (functorSpec)
 
 half :: Fractional a => a -> a
 half x = x / 2
@@ -20,7 +22,9 @@ main :: IO ()
 main = hspec $ do
   wordNumberSpec
   recursionSpec
+  semigroupSpec
   monoidSpec
+  functorSpec
   describe "half" $ do
     it "half is lower than whole" $
       property (\a -> abs (half a) <= abs (a :: Double))
