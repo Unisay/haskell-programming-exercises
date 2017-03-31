@@ -1,4 +1,4 @@
-module Chapter where
+module InUse where
 
 notThe :: String -> Maybe String
 notThe "the" = Nothing

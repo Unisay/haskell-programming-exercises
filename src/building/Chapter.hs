@@ -1,4 +1,4 @@
-module Chapter where
+module InUse where
 
 import           Data.Char               (isDigit)
 import           System.Console.Readline (readline)
