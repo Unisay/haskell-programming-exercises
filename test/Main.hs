@@ -7,6 +7,7 @@ import           WordNumberSpec  (wordNumberSpec)
 import           SemigroupSpec   (semigroupSpec)
 import           MonoidSpec      (monoidSpec)
 import           FunctorSpec     (functorSpec)
+import           ApplicativeSpec (applicativeSpec)
 
 half :: Fractional a => a -> a
 half x = x / 2
@@ -25,6 +26,7 @@ main = hspec $ do
   semigroupSpec
   monoidSpec
   functorSpec
+  applicativeSpec
   describe "half" $ do
     it "half is lower than whole" $
       property (\a -> abs (half a) <= abs (a :: Double))

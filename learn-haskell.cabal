@@ -13,7 +13,14 @@ executable learn-haskell
 library
   hs-source-dirs:    src
                    , src/functor
-  exposed-modules:   Recursion, WordNumber, Monoid, MbMonoid, Semigroup, ReplaceExperiment
+                   , src/applicative
+  exposed-modules:   Recursion
+                   , WordNumber
+                   , Monoid
+                   , MbMonoid
+                   , Semigroup
+                   , ApplicativeLaws
+                   , ReplaceExperiment
   build-depends:     base == 4.*
                    , semigroups
   default-language:  Haskell2010

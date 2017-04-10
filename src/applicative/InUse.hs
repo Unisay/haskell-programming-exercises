@@ -96,10 +96,4 @@ data Person = Person Name Address
   deriving (Eq, Show)
 
 mkPerson :: String -> String -> Maybe Person
-mkPerson n a =
-  case mkName n of
-    Nothing -> Nothing
-    Just n' ->
-      case mkAddress a of
-        Nothing -> Nothing
-        Just a' -> Just $ Person n' a'
+mkPerson n a = Person <$> mkName n <*> mkAddress a
