@@ -20,6 +20,7 @@ library
                    , MbMonoid
                    , Semigroup
                    , ApplicativeLaws
+                   , ListApplicative
                    , ReplaceExperiment
   build-depends:     base == 4.*
                    , semigroups
@@ -37,5 +38,7 @@ Test-Suite tests
                    , SemigroupSpec
   build-depends:     base == 4.*
                    , hspec
+                   , checkers
+                   , hspec-checkers
                    , QuickCheck
                    , learn-haskell

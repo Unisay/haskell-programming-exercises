@@ -5,9 +5,6 @@ import           Test.Hspec
 import           Test.QuickCheck
 import           Control.Applicative (pure, (<*>))
 
-type S = String
-type B = Bool
-
 instance Show (a -> b) where
   show f = "<function>"
 
@@ -15,8 +12,8 @@ applicativeSpec :: SpecWith ()
 applicativeSpec =
   describe "Applicative laws" $ do
     it "identity law" $
-      property (identityLaw :: [S] -> Bool)
+      property (identityLaw :: String -> Bool)
     it "composition law" $
-      property (compositionLaw :: [Int -> String] -> [Bool -> Int] -> [Bool] -> Bool)
+      property (compositionLaw :: [Int -> Char] -> [Bool -> Int] -> [Bool] -> Bool)
     it "homomorphism law" $
-      property (homomorphismLaw (pure :: a -> [a]) (<*>) :: (Int -> String) -> Int -> Bool)
+      property (homomorphismLaw (pure :: a -> [a]) (<*>) :: (Int -> Char) -> Int -> Bool)
