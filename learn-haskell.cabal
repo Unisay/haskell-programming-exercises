@@ -14,7 +14,11 @@ library
   hs-source-dirs:    src
                    , src/functor
                    , src/applicative
-  exposed-modules:   Recursion
+  other-modules:     RecursionSpec
+                   , WordNumberSpec
+                   , MonoidSpec
+                   , SemigroupSpec
+                   , Recursion
                    , WordNumber
                    , Monoid
                    , MbMonoid
@@ -24,22 +28,9 @@ library
                    , ReplaceExperiment
   build-depends:     base == 4.*
                    , semigroups
-  default-language:  Haskell2010
-  ghc-options:       -Wall
-
-Test-Suite tests
-  type:              exitcode-stdio-1.0
-  main-is:           Main.hs
-  hs-source-dirs:    test
-                   , test/applicative
-  default-language:  Haskell2010
-  other-modules:     RecursionSpec
-                   , WordNumberSpec
-                   , MonoidSpec
-                   , SemigroupSpec
-  build-depends:     base == 4.*
                    , hspec
                    , checkers
                    , hspec-checkers
                    , QuickCheck
-                   , learn-haskell
+  default-language:  Haskell2010
+  ghc-options:       -Wall
