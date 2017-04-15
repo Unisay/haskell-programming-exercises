@@ -142,7 +142,7 @@ l2 :: Monad m => (a -> b -> c) -> m a -> m b -> m c
 l2 = liftM2
 
 a :: Monad m => m a -> m (a -> b) -> m b
-a ma mab = mab >>= flip fmap ma
+a ma mab = ap mab ma
 
 meh :: Monad m => [a] -> (a -> m b) -> m [b]
 meh [] _ = return []
