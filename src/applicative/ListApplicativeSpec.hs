@@ -1,4 +1,4 @@
-module ListApplicativeSpec (listApplicativeSpec) where
+module ListApplicativeSpec where
 
 import Test.Hspec
 import Test.Hspec.Checkers

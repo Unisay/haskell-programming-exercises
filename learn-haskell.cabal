@@ -24,7 +24,8 @@ library
                    , MbMonoid
                    , Semigroup
                    , ApplicativeLaws
-                   , ListApplicative
+                   , ZipListApplicativeSpec
+                   , ListApplicativeSpec
                    , ReplaceExperiment
   build-depends:     base == 4.*
                    , semigroups

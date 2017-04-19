@@ -5,7 +5,7 @@ import Test.Hspec.Checkers
 import Test.QuickCheck
 import Test.QuickCheck.Classes
 import Test.QuickCheck.Checkers
-import ListApplicative
+import ListApplicativeSpec
 
 take' :: Int -> List a -> List a
 take' _ Nil = Nil
@@ -14,8 +14,6 @@ take' n l@(Cons h t)
   | otherwise = Cons h (take' (n - 1) t)
 
 newtype ZipList' a = ZipList' (List a) deriving (Eq, Show)
-
-instance Eq a => EqProp (List a) where (=-=) = eq
 
 instance Eq a => EqProp (ZipList' a) where
   xs =-= ys = xs' `eq` ys'
@@ -37,11 +35,6 @@ instance Applicative ZipList' where
 
 -- > ZipList' (Cons (+1) (Cons (+2) Nil)) <*> ZipList' (Cons 10 (Cons 20 (Cons 30 Nil)))
 -- ZipList' (Cons 11 (Cons 22 Nil))
-
-instance Arbitrary a => Arbitrary (List a) where
-  arbitrary = fmap fromList arbitrary where
-    fromList :: [a] -> List a
-    fromList = foldr Cons Nil
 
 instance Arbitrary a => Arbitrary (ZipList' a) where
   arbitrary = fmap ZipList' arbitrary
