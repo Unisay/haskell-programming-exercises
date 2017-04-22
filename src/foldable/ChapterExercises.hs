@@ -1,9 +1,7 @@
 module ChapterExercises where 
-  
-     
-      
-      
-data Constant a b = Constant a   
+
+
+data Constant a b = Constant a
   deriving (Eq, Show)  
 
 instance Foldable (Constant a) where
