@@ -1,4 +1,4 @@
-module Instances (traversableSpec) where
+module ChapterExercises (traversableSpec) where
 
 import Test.Hspec
 import Test.Hspec.Checkers
@@ -128,6 +128,25 @@ instance (Arbitrary a, Arbitrary b) => Arbitrary (Three' a b) where
 instance (Eq a, Eq b) => EqProp (Three' a b) where (=-=) = eq
 
 
+data S n a = S (n a) a
+  deriving (Eq, Show)
+
+instance Functor n => Functor (S n) where
+  fmap f (S na a) = S (fmap f na) (f a)
+
+instance Foldable n => Foldable (S n) where
+  foldMap f (S na a) = foldMap f na `mappend` f a
+
+instance Traversable n => Traversable (S n) where
+  traverse f (S na a) = S <$> traverse f na <*> f a
+
+instance (Applicative n, Arbitrary a) => Arbitrary (S n a) where
+  arbitrary = S <$> (pure <$> arbitrary) <*> arbitrary
+
+instance (Eq a, Eq (n a)) => EqProp (S n a) where (=-=) = eq
+
+
+
 traversableSpec :: SpecWith ()
 traversableSpec = do
   testBatch $ traversable (undefined :: Identity (Int, Int, [Int]))
@@ -136,4 +155,5 @@ traversableSpec = do
   testBatch $ traversable (undefined :: Optional (Int, Int, [Int]))
   testBatch $ traversable (undefined :: Three Int Int (Int, Int, [Int]))
   testBatch $ traversable (undefined :: Three' Int (Int, Int, [Int]))
+  testBatch $ traversable (undefined :: S [] (Int, Int, [Int]))
 
