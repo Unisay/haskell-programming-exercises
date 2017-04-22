@@ -86,9 +86,54 @@ instance Arbitrary a => Arbitrary (Optional a) where
 instance Eq a => EqProp (Optional a) where (=-=) = eq
 
 
+data Three a b c = Three a b c
+  deriving (Eq, Show)
+
+instance Functor (Three a b) where
+  fmap f (Three x y z) = Three x y $ f z
+
+instance Foldable (Three a b) where
+  foldMap f (Three _ _ z) = f z
+
+instance Traversable (Three a b) where
+  traverse f (Three x y z) = Three x y <$> f z
+
+instance (Arbitrary a, Arbitrary b, Arbitrary c) =>
+         Arbitrary (Three a b c) where
+  arbitrary = Three <$> arbitrary
+                    <*> arbitrary
+                    <*> arbitrary
+
+instance (Eq a, Eq b, Eq c) =>
+         EqProp (Three a b c) where (=-=) = eq
+
+
+data Three' a b = Three' a b b
+  deriving (Eq, Show)
+
+instance Functor (Three' a) where
+  fmap f (Three' x y y') = Three' x (f y) (f y')
+
+instance Foldable (Three' a) where
+  foldMap f (Three' _ y y') = f y `mappend` f y'
+
+instance Traversable (Three' a) where
+  traverse f (Three' x y y') = Three' x <$> f y <*> f y'
+
+instance (Arbitrary a, Arbitrary b) => Arbitrary (Three' a b) where
+  arbitrary = Three' <$> arbitrary
+                     <*> arbitrary
+                     <*> arbitrary
+
+instance (Eq a, Eq b) => EqProp (Three' a b) where (=-=) = eq
+
+
 traversableSpec :: SpecWith ()
 traversableSpec = do
-  testBatch $ traversable (undefined :: Identity (Int, Bool, String))
-  testBatch $ traversable (undefined :: Constant Int (Int, Bool, String))
-  testBatch $ traversable (undefined :: List (Int, Bool, String))
-  testBatch $ traversable (undefined :: Optional (Int, Bool, String))
+  testBatch $ traversable (undefined :: Identity (Int, Int, [Int]))
+  testBatch $ traversable (undefined :: Constant Int (Int, Int, [Int]))
+  testBatch $ traversable (undefined :: List (Int, Int, [Int]))
+  testBatch $ traversable (undefined :: Optional (Int, Int, [Int]))
+  testBatch $ traversable (undefined :: Three Int Int (Int, Int, [Int]))
+  testBatch $ traversable (undefined :: Three' Int (Int, Int, [Int]))
+
