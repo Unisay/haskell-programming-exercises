@@ -5,6 +5,7 @@ import Test.Hspec.Checkers
 import Test.QuickCheck
 import Test.QuickCheck.Classes
 import Test.QuickCheck.Checkers
+import Data.Monoid
 
 newtype Identity a = Identity a
   deriving (Eq, Show)
@@ -51,7 +52,7 @@ instance Functor List where
 
 instance Foldable List where
   foldr _ z Nil = z
-  foldr f z (Cons h t) = foldr f (f h z) t
+  foldr f z (Cons h t) =  f h (foldr f z t)
 
 instance Traversable List where
   traverse _ Nil = pure Nil
@@ -115,7 +116,7 @@ instance Functor (Three' a) where
   fmap f (Three' x y y') = Three' x (f y) (f y')
 
 instance Foldable (Three' a) where
-  foldMap f (Three' _ y y') = f y `mappend` f y'
+  foldMap f (Three' _ y y') = f y <> f y'
 
 instance Traversable (Three' a) where
   traverse f (Three' x y y') = Three' x <$> f y <*> f y'
@@ -135,7 +136,7 @@ instance Functor n => Functor (S n) where
   fmap f (S na a) = S (fmap f na) (f a)
 
 instance Foldable n => Foldable (S n) where
-  foldMap f (S na a) = foldMap f na `mappend` f a
+  foldMap f (S na a) = foldMap f na <> f a
 
 instance Traversable n => Traversable (S n) where
   traverse f (S na a) = S <$> traverse f na <*> f a
@@ -144,6 +145,32 @@ instance (Applicative n, Arbitrary a) => Arbitrary (S n a) where
   arbitrary = S <$> (pure <$> arbitrary) <*> arbitrary
 
 instance (Eq a, Eq (n a)) => EqProp (S n a) where (=-=) = eq
+
+
+data Tree a = Empty
+            | Leaf a
+            | Node (Tree a) a (Tree a)
+            deriving (Eq, Show)
+
+instance Functor Tree where
+  fmap _ Empty = Empty
+  fmap f (Leaf a) = Leaf (f a)
+  fmap f (Node l a r) = Node (fmap f l) (f a) (fmap f r)
+
+instance Foldable Tree where
+  foldMap _ Empty = mempty
+  foldMap f (Leaf a) = f a
+  foldMap f (Node l a r) = foldMap f l <> f a <> foldMap f r
+
+{-  foldr _ z Empty = z
+  foldr f z (Leaf a) = f a z
+  foldr f z (Node l a r) =
+    foldr f z l
+    f a z
+    foldr f z r-}
+
+instance Traversable Tree where
+  traverse = undefined
 
 
 
