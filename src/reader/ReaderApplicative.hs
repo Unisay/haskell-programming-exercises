@@ -1,3 +1,5 @@
+{-# LANGUAGE InstanceSigs #-}
+
 module ReaderApplicative where
 
 import Control.Applicative (liftA2)
@@ -34,9 +36,28 @@ getDog :: Person -> Dog
 getDog p = Dog (dogName p) (address p)
 
 -- with Reader
-getDogR :: Person -> Dog
-getDogR = Dog <$> dogName <*> address
+getDogR :: Reader Person Dog
+getDogR = Reader $ Dog <$> dogName <*> address
 
 -- with Reader, alternate
 getDogR' :: Person -> Dog
 getDogR' = liftA2 Dog dogName address
+
+newtype Reader r a = Reader { runReader :: r -> a }
+
+myLiftA2 :: Applicative f => (a -> b -> c) -> f a -> f b -> f c
+myLiftA2 fab fa fb = fmap fab fa <*> fb
+
+asks :: (r -> a) -> Reader r a
+asks = Reader
+
+instance Functor (Reader r) where
+  fmap :: (a -> b) -> Reader r a -> Reader r b
+  fmap f (Reader ra) = Reader (f . ra)
+
+instance Applicative (Reader r) where
+  pure :: a -> Reader r a
+  pure a = Reader $ const a
+
+  (<*>) :: Reader r (a -> b) -> Reader r a -> Reader r b
+  (Reader rab) <*> (Reader ra) = Reader $ \r -> rab r (ra r)
