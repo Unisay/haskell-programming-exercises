@@ -14,6 +14,7 @@ library
   hs-source-dirs:    src
                    , src/functor
                    , src/applicative
+                   , src/reader
   other-modules:     RecursionSpec
                    , WordNumberSpec
                    , MonoidSpec
@@ -27,6 +28,8 @@ library
                    , ZipListApplicativeSpec
                    , ListApplicativeSpec
                    , ReplaceExperiment
+                   , ThisIsReader
+                   , ReaderApplicative
   build-depends:     base == 4.*
                    , semigroups
                    , hspec

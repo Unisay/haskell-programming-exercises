@@ -1,6 +1,6 @@
 {-# LANGUAGE InstanceSigs #-}
 
-module ReaderApplicative where
+module ReaderInstances where
 
 import Control.Applicative (liftA2)
 
@@ -43,6 +43,13 @@ getDogR = Reader $ Dog <$> dogName <*> address
 getDogR' :: Person -> Dog
 getDogR' = liftA2 Dog dogName address
 
+-- with Reader Monad
+getDogRM :: Reader Person Dog
+getDogRM = do
+  name <- asks dogName
+  addy <- asks address
+  return $ Dog name addy
+
 newtype Reader r a = Reader { runReader :: r -> a }
 
 myLiftA2 :: Applicative f => (a -> b -> c) -> f a -> f b -> f c
@@ -61,3 +68,9 @@ instance Applicative (Reader r) where
 
   (<*>) :: Reader r (a -> b) -> Reader r a -> Reader r b
   (Reader rab) <*> (Reader ra) = Reader $ \r -> rab r (ra r)
+
+instance Monad (Reader r) where
+  return = pure
+
+  (>>=) :: Reader r a -> (a -> Reader r b) -> Reader r b
+  (Reader ra) >>= arb = Reader (\r -> let (Reader rb) = arb (ra r) in rb r)
