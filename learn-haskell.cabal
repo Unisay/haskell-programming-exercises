@@ -7,8 +7,10 @@ executable learn-haskell
   main-is:           Main.hs
   hs-source-dirs:    src
   default-language:  Haskell2010
-  build-depends:     base, time
+  build-depends:     base
+                   , time
                    , readline
+                   , random
 
 library
   hs-source-dirs:    src
