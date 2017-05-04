@@ -1,5 +1,3 @@
-{-# LANGUAGE ExtendedDefaultRules #-}
-
 module Gems where
 
 import Data.Tuple (swap)
@@ -15,6 +13,9 @@ g1 = swap
 
 dot :: (c -> d) -> (a -> b -> c) -> a -> b -> d
 dot = (.).(.)
+
+nmap :: (Functor f1, Functor f2) => (a -> b) -> f1 (f2 a) -> f1 (f2 b)
+nmap = fmap . fmap
 
 main :: IO ()
 main = do
