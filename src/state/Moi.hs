@@ -4,25 +4,24 @@ module Moi where
 
 import Control.Arrow (first)
 
-newtype Moi s a = Moi { runMoi :: s -> (a, s) }
+newtype State s a = State { runState :: s -> (a, s) }
 
-instance Functor (Moi s) where
-  fmap :: (a -> b) -> Moi s a -> Moi s b
-  fmap f (Moi g) = Moi $ first f . g
+instance Functor (State s) where
+  fmap :: (a -> b) -> State s a -> State s b
+  fmap f (State g) = State $ first f . g
 
-instance Applicative (Moi s) where
-  pure :: a -> Moi s a
-  pure a = Moi $ \x -> (a, x)
+instance Applicative (State s) where
+  pure :: a -> State s a
+  pure a = State $ \x -> (a, x)
 
-  (<*>) :: Moi s (a -> b) -> Moi s a -> Moi s b
-  (Moi f) <*> (Moi g) = Moi $ \s -> k s where
-    k s0 = let (h, s1) = f s0
-               (a, s2) = g s1
-           in (h a, s2)
+  (<*>) :: State s (a -> b) -> State s a -> State s b
+  (State f) <*> (State g) = State $ \s0 -> let (h, s1) = f s0
+                                               (a, s2) = g s1
+                                           in (h a, s2)
 
-instance Monad (Moi s) where
+instance Monad (State s) where
   return = pure
 
-  (>>=) :: Moi s a -> (a -> Moi s b) -> Moi s b
-  (>>=) (Moi f) g = Moi $ \s -> k s where
-    k s0 = let (a, s1) = f s0 in runMoi (g a) s1
+  (>>=) :: State s a -> (a -> State s b) -> State s b
+  (>>=) (State f) g = State $ \s -> let (a, s') = f s
+                                    in runState (g a) s'

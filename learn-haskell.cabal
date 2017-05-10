@@ -17,6 +17,7 @@ library
                    , src/functor
                    , src/applicative
                    , src/reader
+                   , src/state
   other-modules:     RecursionSpec
                    , WordNumberSpec
                    , MonoidSpec
@@ -31,7 +32,8 @@ library
                    , ListApplicativeSpec
                    , ReplaceExperiment
                    , ThisIsReader
-                   , ReaderApplicative
+                   , ReaderInstances
+                   , Moi
   build-depends:     base == 4.*
                    , semigroups
                    , hspec
