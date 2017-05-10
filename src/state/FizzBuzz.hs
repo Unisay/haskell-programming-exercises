@@ -11,6 +11,9 @@ fizzBuzz n | n `mod` 15 == 0 = "FizzBuzz"
 fizzBuzzList :: [Integer] -> [String]
 fizzBuzzList list = execState (mapM_ addResult list) []
 
+fizzBuzzFromTo :: Integer -> Integer -> [String]
+fizzBuzzFromTo = undefined
+
 addResult :: Integer -> State [String] ()
 addResult n = do
   xs <- get
