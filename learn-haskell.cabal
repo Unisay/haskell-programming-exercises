@@ -35,6 +35,10 @@ library
                    , ReaderInstances
                    , Moi
   build-depends:     base == 4.*
+                   , containers
+                   , text
+                   , bytestring
+                   , raw-strings-qq
                    , semigroups
                    , hspec
                    , checkers
