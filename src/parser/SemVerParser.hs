@@ -57,9 +57,11 @@ parseSemVer = do
   major <- parseMajor
   minor <- parseMinor
   patch <- parsePatch
-  release <- optional parseRelease
-  metadata <- optional parseMetadata
-  _ <- eof
-  return $ SemVer major minor patch (fromMaybe [] release) (fromMaybe [] metadata)
+  maybeRelease  <- optional parseRelease
+  maybeMetadata <- optional parseMetadata
+  eof
+  let release  = fromMaybe [] maybeRelease
+      metadata = fromMaybe [] maybeMetadata
+  return $ SemVer major minor patch release metadata
 
 
