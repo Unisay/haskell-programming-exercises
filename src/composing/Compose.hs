@@ -13,7 +13,7 @@ instance (Applicative f, Applicative g) => Applicative (Compose f g) where
   (Compose f) <*> (Compose a) = Compose $ (<*>) <$> f <*> a
 
 instance (Foldable f, Foldable g) => Foldable (Compose f g) where
-  foldMap h (Compose f) = foldMap (foldMap h) f
+  foldMap h (Compose f) = (foldMap . foldMap) h f
 
 instance (Traversable f, Traversable g) => Traversable (Compose f g) where
-  traverse h (Compose f) = Compose <$> traverse (traverse h) f
+  traverse h (Compose f) = Compose <$> (traverse . traverse) h f
