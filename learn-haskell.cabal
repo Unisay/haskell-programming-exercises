@@ -18,6 +18,9 @@ library
                    , src/applicative
                    , src/reader
                    , src/state
+                   , src/composing
+                   , src/monad
+                   , src/monoid
   other-modules:     RecursionSpec
                    , WordNumberSpec
                    , MonoidSpec
@@ -52,3 +55,4 @@ library
                    , aeson
   default-language:  Haskell2010
   ghc-options:       -Wall -fno-warn-type-defaults
+  default-extensions: InstanceSigs
