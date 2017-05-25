@@ -21,6 +21,7 @@ library
                    , src/composing
                    , src/monad
                    , src/monoid
+                   , src/transformers
   other-modules:     RecursionSpec
                    , WordNumberSpec
                    , MonoidSpec
