@@ -1,9 +1,12 @@
 module ReaderT where
 
+import Data.Functor.Identity
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
 
 newtype ReaderT r m a = ReaderT { runReaderT :: r -> m a }
+
+type Reader r a = ReaderT r Identity a
 
 instance (Functor m) => Functor (ReaderT r m) where
   fmap f (ReaderT r) = ReaderT $ (fmap . fmap) f r
@@ -28,3 +31,6 @@ instance MonadTrans (ReaderT r) where
 instance MonadIO m => MonadIO (ReaderT r m) where
   liftIO :: IO a -> ReaderT r m a
   liftIO = lift . liftIO
+
+ask :: ReaderT a IO a
+ask = ReaderT pure
