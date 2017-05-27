@@ -23,7 +23,6 @@ liftReaderT :: m a -> ReaderT r m a
 liftReaderT m = ReaderT (const m)
 
 instance MonadTrans (ReaderT r) where
-  lift :: m a -> ReaderT r m a
   lift = liftReaderT
 
 instance MonadIO m => MonadIO (ReaderT r m) where
