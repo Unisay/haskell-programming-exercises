@@ -8,7 +8,7 @@ import Control.Monad.IO.Class
 -- rDec is a function that should get its argument
 -- in the context of Reader and return a value decremented by one.
 rDec :: Num a => Reader a a
-rDec = ReaderT $ Identity . subtract 1 -- subtract 1 <$> ask
+rDec = ReaderT $ return . subtract 1 -- subtract 1 <$> ask
 
 -- rShow is show, but in Reader.
 rShow :: Show a => ReaderT a Identity String
