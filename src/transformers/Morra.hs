@@ -45,6 +45,15 @@ mkGuess s = Guess <$> mfilter (2 <-> 10) (readMaybe s)
 
 instance Show Guess where show (Guess n) = show n
 
+data Mode = PlayerVsRobot | PlayerVsPlayer
+
+mkMode :: String -> Maybe Mode
+mkMode "1" = Just PlayerVsRobot
+mkMode "2" = Just PlayerVsPlayer
+
+instance Show Mode where
+  show PlayerVsRobot = "Player vs. Robot (#1)"
+  show PlayerVsPlayer = "Player vs. Player (#2)"
 
 data Turn = MkTurn { fingers :: Fingers, guess :: Guess }
 
@@ -116,17 +125,29 @@ round = do
   return winner
   where say = liftIO . putStrLn
 
-nextRound :: MaybeT (StateT [Winner] IO) ()
-nextRound = mapMaybeT makeLog round
+nextRound :: Mode -> MaybeT (StateT [Winner] IO) ()
+nextRound _ = mapMaybeT makeLog round
   where
     makeLog io = StateT $ \log -> saveWinner log <$> io
     saveWinner log win = (void win, log ++ maybeToList win)
 
-playUntilQuit :: IO [Winner]
-playUntilQuit = runLog loop
+roundsUntilQuit :: Mode -> [Winner]
+roundsUntilQuit mode = _
   where
-    loop = runMaybeT $ forever nextRound
-    runLog g = execStateT g []
+    f log = execStateT log []
+    rounds :: MaybeT (StateT [Winner] IO) ()
+    rounds = forever (nextRound mode)
+
+askMode :: QuitOr Mode
+askMode = askUntil mkMode
+  "Please make a choice:\n\t1\tHuman vs. Robot\n\t2\tHuman vs. Player"
+
+playUntilQuit :: IO [Winner]
+playUntilQuit = let x :: IO [Winner]
+                    x = do
+                    mode <- askMode
+                    roundsUntilQuit mode
+                in x
 
 summary :: [Winner] -> (Int, Int, Winner)
 summary log =
@@ -142,8 +163,7 @@ summary log =
 main :: IO ()
 main = do
   putStrLn "This is Morra."
-  putStrLn "Enter 'q' at any time in order to quit."
-  putStrLn "Press Enter when ready to play."
+  putStrLn "Enter 'q' at any time in order to finish a game."
   _ <- getLine
   (userVictories, robotVictories, overallWinner) <- summary <$> playUntilQuit
   putStrLn $ "User has won " ++ show userVictories ++ " times"
