@@ -12,6 +12,7 @@ executable learn-haskell
                    , readline
                    , random
                    , scotty
+                   , ansi-terminal
 library
   hs-source-dirs:    src
                    , src/functor

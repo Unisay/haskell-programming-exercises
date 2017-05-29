@@ -19,6 +19,7 @@ import Control.Monad.Trans.Class
 import Control.Applicative
 import System.IO (hFlush, stdout)
 import System.Random
+import System.Console.ANSI
 import Text.Read (readMaybe)
 import Data.Maybe (maybeToList)
 import Text.RawString.QQ
@@ -53,11 +54,14 @@ instance Show Player where
   show Human2 = "Player #2"
   show Robot  = "Robot"
 
-data Mode = HumanVsRobot | HumanVsHuman deriving (Eq, Show)
+data Mode = HumanVsRobot | HumanVsHuman
+  deriving (Eq, Show)
 
-newtype Winner = Winner (Maybe Player) deriving Eq
+newtype Winner = Winner (Maybe Player)
+  deriving (Eq, Show)
 
 data RoundResult = RoundResult { winner :: Winner, totalFingers :: Int }
+  deriving (Eq, Show)
 
 players :: Mode -> (Player, Player)
 players HumanVsRobot = (Human1, Robot)
@@ -131,20 +135,28 @@ turns :: Mode -> (QuitOr Turn, QuitOr Turn)
 turns HumanVsRobot = (humanTurns HumanVsRobot Human1, lift robotTurns)
 turns HumanVsHuman = (humanTurns HumanVsHuman Human1, humanTurns HumanVsHuman Human2)
 
+newScreen :: QuitOr ()
+newScreen = liftIO $ clearScreen >> banner
+
 round :: Mode -> QuitOr RoundResult
 round mode = do
+  newScreen
   let (quitOrFirstTurn, quitOrSecondTurn) = turns mode
   firstTurn <- quitOrFirstTurn
-  say $ show firstTurn
+  newScreen
   secondTurn <- quitOrSecondTurn
-  say $ show secondTurn
+  newScreen
   let result = determineWinner firstTurn secondTurn
+  say $ show firstTurn
+  say $ show secondTurn
   say $ mconcat [ "Sum is "
                 , show (totalFingers result)
                 , " so "
                 , showWinner mode (winner result)
                 , "!\n"
                 ]
+  say "Press enter for the next round or 'q' to finish the game"
+  _ <- liftIO getLine
   return result
   where showWinner :: Mode -> Winner -> String
         showWinner _ (Winner Nothing) = "nobody wins, its a tie"
@@ -191,23 +203,31 @@ congratulations HumanVsHuman (Winner (Just Human1)) =
 congratulations HumanVsHuman (Winner (Just Human2)) =
   "Congratulations to the second player who has won the game!"
 
+banner :: IO ()
+banner = putStrLn [r|
+   ███▄ ▄███▓ ▒█████   ██▀███   ██▀███   ▄▄▄
+  ▓██▒▀█▀ ██▒▒██▒  ██▒▓██ ▒ ██▒▓██ ▒ ██▒▒████▄
+  ▓██    ▓██░▒██░  ██▒▓██ ░▄█ ▒▓██ ░▄█ ▒▒██  ▀█▄
+  ▒██    ▒██ ▒██   ██░▒██▀▀█▄  ▒██▀▀█▄  ░██▄▄▄▄██
+  ▒██▒   ░██▒░ ████▓▒░░██▓ ▒██▒░██▓ ▒██▒ ▓█   ▓██▒
+  ░ ▒░   ░  ░░ ▒░▒░▒░ ░ ▒▓ ░▒▓░░ ▒▓ ░▒▓░ ▒▒   ▓▒█░
+  ░  ░      ░  ░ ▒ ▒░   ░▒ ░ ▒░  ░▒ ░ ▒░  ▒   ▒▒ ░
+  ░      ░   ░ ░ ░ ▒    ░░   ░   ░░   ░   ░   ▒
+         ░       ░ ░     ░        ░           ░  ░
+|]
+
 main :: IO ()
 main = void $ runMaybeT $ do
-  say [r|
-   • ▌ ▄ ·.       ▄▄▄  ▄▄▄   ▄▄▄·
-   ·██ ▐███▪▪     ▀▄ █·▀▄ █·▐█ ▀█
-   ▐█ ▌▐▌▐█· ▄█▀▄ ▐▀▀▄ ▐▀▀▄ ▄█▀▀█
-   ██ ██▌▐█▌▐█▌.▐▌▐█•█▌▐█•█▌▐█ ▪▐▌
-   ▀▀  █▪▀▀▀ ▀█▄▀▪.▀  ▀.▀  ▀ ▀  ▀
-  |]
+  liftIO banner
   say "This is a game Morra."
   say "Enter 'q' any time in order to finish the game.\n"
   mode <- askMode
-  let ps @ (player1, player2) = players mode
-  (p1wins, p2wins, overallWinner) <- lift $ summary ps <$> roundsUntilQuit mode
-  say $ name mode player1 ++ " won " ++ show p1wins ++ " times"
-  say $ name mode player2 ++ " won " ++ show p2wins ++ " times"
-  say $ congratulations mode overallWinner
+  let bothPlayers @ (player1, player2) = players mode
+  log <- liftIO $ roundsUntilQuit mode
+  let (wins1, wins2, theWinner) = summary bothPlayers log
+  say $ name mode player1 ++ " won " ++ show wins1 ++ " times"
+  say $ name mode player2 ++ " won " ++ show wins2 ++ " times"
+  say $ congratulations mode theWinner
     where name HumanVsRobot Robot = "Robot has"
           name HumanVsRobot _ = "You"
           name HumanVsHuman p = show p ++ " has"
