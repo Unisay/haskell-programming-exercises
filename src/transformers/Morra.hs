@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE QuasiQuotes, GeneralizedNewtypeDeriving #-}
 
 module Morra where
 
@@ -21,6 +21,7 @@ import System.IO (hFlush, stdout)
 import System.Random
 import Text.Read (readMaybe)
 import Data.Maybe (maybeToList)
+import Text.RawString.QQ
 
 newtype Fingers = Fingers Int deriving (Eq, Num)
 
@@ -45,35 +46,42 @@ mkGuess s = Guess <$> mfilter (2 <-> 10) (readMaybe s)
 
 instance Show Guess where show (Guess n) = show n
 
-data Mode = PlayerVsRobot | PlayerVsPlayer
+data Player = Human1 | Human2 | Robot deriving Eq
+
+instance Show Player where
+  show Human1 = "Player #1"
+  show Human2 = "Player #2"
+  show Robot  = "Robot"
+
+data Mode = HumanVsRobot | HumanVsHuman deriving (Eq, Show)
+
+newtype Winner = Winner (Maybe Player) deriving Eq
+
+data RoundResult = RoundResult { winner :: Winner, totalFingers :: Int }
+
+players :: Mode -> (Player, Player)
+players HumanVsRobot = (Human1, Robot)
+players HumanVsHuman = (Human1, Human2)
 
 mkMode :: String -> Maybe Mode
-mkMode "1" = Just PlayerVsRobot
-mkMode "2" = Just PlayerVsPlayer
+mkMode "1" = Just HumanVsRobot
+mkMode "2" = Just HumanVsHuman
+mkMode _ = Nothing
 
-instance Show Mode where
-  show PlayerVsRobot = "Player vs. Robot (#1)"
-  show PlayerVsPlayer = "Player vs. Player (#2)"
-
-data Turn = MkTurn { fingers :: Fingers, guess :: Guess }
+data Turn = Turn Player Fingers Guess
 
 instance Show Turn where
- show (MkTurn f g) = show f ++ " while guessing sum " ++ show g
-
-data Winner = User | Robot | Nobody deriving (Eq, Show)
+ show (Turn p f g) =
+   mconcat [show p, " shows ", show f, " while guessing sum ", show g]
 
 type QuitOr a = MaybeT IO a
 
+ask :: String -> QuitOr String
+ask s = mfilter (/="q") . lift $ answer
+ where answer = putStr (s ++ " > ") >> hFlush stdout >> getLine
+
 mayQuit :: Maybe a -> QuitOr a
 mayQuit = MaybeT . pure
-
-ask :: String -> QuitOr String
-ask s = do
-  lift $ putStr (s ++ " > ")
-  lift $ hFlush stdout
-  answer <- lift getLine
-  when (answer == "q") mzero
-  return answer
 
 askUntil :: (String -> Maybe a) -> String -> QuitOr a
 askUntil check question = do
@@ -82,13 +90,17 @@ askUntil check question = do
 
 -- Asks user to make a turn until he provides a correct one
 -- (Just) or quits (Nothing)
-userTurns :: QuitOr Turn
-userTurns = do
-  f <- askUntil mkFingers
-    "Please enter a number of fingers to show (1, 2, 3, 4, 5)"
-  g <- askUntil mkGuess
-    "Try to guess the sum (2, 3, 4, 5, 6, 7, 8, 9, 10)"
-  return $ MkTurn f g
+humanTurns :: Mode -> Player -> QuitOr Turn
+humanTurns mode player = do
+  f <- askUntil mkFingers $
+    playerName mode player ++ "enter a number of fingers to show (1, 2, 3, 4, 5)"
+  g <- askUntil mkGuess $
+    playerName mode player ++ "try to guess the sum (2, 3, 4, 5, 6, 7, 8, 9, 10)"
+  return $ Turn player f g
+    where
+      playerName :: Mode -> Player -> String
+      playerName HumanVsRobot _ = "Please "
+      playerName HumanVsHuman p = show p ++ ", please "
 
 randomFingers :: IO Fingers
 randomFingers = Fingers <$> getStdRandom (randomR (1, 5))
@@ -97,80 +109,108 @@ randomGuess :: IO Guess
 randomGuess = Guess <$> getStdRandom (randomR (2, 10))
 
 robotTurns :: IO Turn
-robotTurns = MkTurn <$> randomFingers <*> randomGuess
+robotTurns = Turn Robot <$> randomFingers <*> randomGuess
 
-determineWinner :: Turn -> Turn -> (Int, Winner)
-determineWinner usersTurn robotsTurn =
-  let (Fingers numFingersUser) = fingers usersTurn
-      (Fingers numFingersRobot) = fingers robotsTurn
-      (Guess usersGuess) = guess usersTurn
-      (Guess robotsGuess) = guess robotsTurn
-      sum = numFingersUser + numFingersRobot
-      d1 = abs (sum - usersGuess)
-      d2 = abs (sum - robotsGuess)
-      winner = case compare d1 d2 of
-        LT -> User
-        GT -> Robot
-        EQ -> Nobody
-  in (sum, winner)
+determineWinner :: Turn -> Turn -> RoundResult
+determineWinner turn1 turn2 =
+  let (Turn player1 (Fingers fingers1) (Guess guess1)) = turn1
+      (Turn player2 (Fingers fingers2) (Guess guess2)) = turn2
+      fingers = fingers1 + fingers2
+      d1 = abs (fingers - guess1)
+      d2 = abs (fingers - guess2)
+      theWinner = case compare d1 d2 of
+        LT -> Winner $ Just player1
+        GT -> Winner $ Just player2
+        EQ -> Winner Nothing
+  in RoundResult theWinner fingers
 
-round :: QuitOr Winner
-round = do
-  usersTurn <- userTurns
-  say $ "You showed " ++ show usersTurn
-  robotsTurn <- lift robotTurns
-  say $ "Robot showed " ++ show robotsTurn
-  let (sm, winner) = determineWinner usersTurn robotsTurn
-  say $ "Sum is " ++ show sm ++ " so " ++ show winner ++ " wins this round!"
-  return winner
-  where say = liftIO . putStrLn
+say :: String -> QuitOr ()
+say = liftIO . putStrLn
 
-nextRound :: Mode -> MaybeT (StateT [Winner] IO) ()
-nextRound _ = mapMaybeT makeLog round
+turns :: Mode -> (QuitOr Turn, QuitOr Turn)
+turns HumanVsRobot = (humanTurns HumanVsRobot Human1, lift robotTurns)
+turns HumanVsHuman = (humanTurns HumanVsHuman Human1, humanTurns HumanVsHuman Human2)
+
+round :: Mode -> QuitOr RoundResult
+round mode = do
+  let (quitOrFirstTurn, quitOrSecondTurn) = turns mode
+  firstTurn <- quitOrFirstTurn
+  say $ show firstTurn
+  secondTurn <- quitOrSecondTurn
+  say $ show secondTurn
+  let result = determineWinner firstTurn secondTurn
+  say $ mconcat [ "Sum is "
+                , show (totalFingers result)
+                , " so "
+                , showWinner mode (winner result)
+                , "!\n"
+                ]
+  return result
+  where showWinner :: Mode -> Winner -> String
+        showWinner _ (Winner Nothing) = "nobody wins, its a tie"
+        showWinner _ (Winner (Just Robot)) = "robot wins"
+        showWinner HumanVsRobot (Winner (Just _)) = "you win"
+        showWinner HumanVsHuman (Winner (Just p)) = show p ++ " wins"
+
+nextRound :: Mode -> MaybeT (StateT [RoundResult] IO) ()
+nextRound mode = mapMaybeT makeLog (round mode)
   where
     makeLog io = StateT $ \log -> saveWinner log <$> io
     saveWinner log win = (void win, log ++ maybeToList win)
 
-roundsUntilQuit :: Mode -> [Winner]
-roundsUntilQuit mode = _
-  where
-    f log = execStateT log []
-    rounds :: MaybeT (StateT [Winner] IO) ()
-    rounds = forever (nextRound mode)
+roundsUntilQuit :: Mode -> IO [RoundResult]
+roundsUntilQuit mode = execStateT log []
+  where log = runMaybeT $ forever (nextRound mode)
 
 askMode :: QuitOr Mode
-askMode = askUntil mkMode
-  "Please make a choice:\n\t1\tHuman vs. Robot\n\t2\tHuman vs. Player"
+askMode = askUntil mkMode [r|Please make a choice:
+ 1  Human vs. Robot
+ 2  Human vs. Human
+|]
 
-playUntilQuit :: IO [Winner]
-playUntilQuit = let x :: IO [Winner]
-                    x = do
-                    mode <- askMode
-                    roundsUntilQuit mode
-                in x
+summary :: (Player, Player) -> [RoundResult] -> (Int, Int, Winner)
+summary (player1, player2) log = (player1Victories, player2Victories, theWinner)
+  where
+    player1Victories = countVictories player1 log
+    player2Victories = countVictories player2 log
+    countVictories p = length . filter ((== Winner (Just p)) . winner)
+    theWinner = case compare player1Victories player2Victories of
+      GT -> Winner $ Just player1
+      LT -> Winner $ Just player2
+      EQ -> Winner Nothing
 
-summary :: [Winner] -> (Int, Int, Winner)
-summary log =
-  let countVictories p = length . filter (== p)
-      userVictories = countVictories User log
-      robotVictories = countVictories Robot log
-      winner = case compare userVictories robotVictories of
-        GT -> User
-        LT -> Robot
-        EQ -> Nobody
-  in (userVictories, robotVictories, winner)
+congratulations :: Mode -> Winner -> String
+congratulations _ (Winner Nothing) =
+  "Congratulations to both players!"
+congratulations _ (Winner (Just Robot)) =
+  "Condolences, robot won :("
+congratulations HumanVsRobot (Winner (Just _)) =
+  "Congratulations, you won!"
+congratulations HumanVsHuman (Winner (Just Human1)) =
+  "Congratulations to the first player who has won the game!"
+congratulations HumanVsHuman (Winner (Just Human2)) =
+  "Congratulations to the second player who has won the game!"
 
 main :: IO ()
-main = do
-  putStrLn "This is Morra."
-  putStrLn "Enter 'q' at any time in order to finish a game."
-  _ <- getLine
-  (userVictories, robotVictories, overallWinner) <- summary <$> playUntilQuit
-  putStrLn $ "User has won " ++ show userVictories ++ " times"
-  putStrLn $ "Robot has won " ++ show robotVictories ++ " times"
-  putStrLn $ if overallWinner == Nobody
-             then "Congratulations to both players!"
-             else "Congratulations to the " ++ show overallWinner ++ "!"
+main = void $ runMaybeT $ do
+  say [r|
+   • ▌ ▄ ·.       ▄▄▄  ▄▄▄   ▄▄▄·
+   ·██ ▐███▪▪     ▀▄ █·▀▄ █·▐█ ▀█
+   ▐█ ▌▐▌▐█· ▄█▀▄ ▐▀▀▄ ▐▀▀▄ ▄█▀▀█
+   ██ ██▌▐█▌▐█▌.▐▌▐█•█▌▐█•█▌▐█ ▪▐▌
+   ▀▀  █▪▀▀▀ ▀█▄▀▪.▀  ▀.▀  ▀ ▀  ▀
+  |]
+  say "This is a game Morra."
+  say "Enter 'q' any time in order to finish the game.\n"
+  mode <- askMode
+  let ps @ (player1, player2) = players mode
+  (p1wins, p2wins, overallWinner) <- lift $ summary ps <$> roundsUntilQuit mode
+  say $ name mode player1 ++ " won " ++ show p1wins ++ " times"
+  say $ name mode player2 ++ " won " ++ show p2wins ++ " times"
+  say $ congratulations mode overallWinner
+    where name HumanVsRobot Robot = "Robot has"
+          name HumanVsRobot _ = "You"
+          name HumanVsHuman p = show p ++ " has"
 
 
 
